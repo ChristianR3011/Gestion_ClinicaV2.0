@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👥 Gestión de Personal</title>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <style>
+    :root {
+      --primary: #0077b6;
+      --secondary: #00b4d8;
+      --accent: #03045e;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      min-height: 100vh;
+      padding: 2rem;
+      display: grid;
+      place-items: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 1200px;
+      min-height: 80vh;
+      padding: 2.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .cabecera {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-bottom: 1.5rem;
+      border-bottom: 3px solid var(--secondary);
+      position: relative;
+    }
+
+    .titulo-principal {
+      color: var(--accent);
+      font-size: 2.4rem;
+      font-weight: 700;
+    }
+
+    .top-bar {
+      position: absolute;
+      right: 0;
+      text-decoration: none;
+      font-size: 1.3rem;
+      color: var(--primary);
+      font-weight: bold;
+      transition: var(--transition);
+    }
+
+    .top-bar:hover {
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .search-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.8rem;
+      border: 2px solid var(--secondary);
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+    }
+
+    .btn {
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      display: inline-block;
+      font-weight: 600;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #6c757d, #495057);
+    }
+
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #495057, #343a40);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    th, td {
+      padding: 1rem;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      text-align: left;
+    }
+
+    th {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    tr:hover {
+      background: rgba(0, 119, 182, 0.05);
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 500px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      overflow-y: auto;
+      max-height: 90vh;
+      animation: slideIn 0.4s ease-out;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-content h3 {
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+      font-size: 1.6rem;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: var(--dark);
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 0.8rem;
+      border: 2px solid var(--secondary);
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .actions .btn {
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .container {
+        padding: 1.5rem;
+        min-height: 70vh;
+      }
+
+      .cabecera {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .titulo-principal {
+        font-size: 1.8rem;
+      }
+
+      .search-section {
+        justify-content: center;
+      }
+
+      .modal-content {
+        padding: 2rem;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      table {
+        font-size: 0.9rem;
+      }
+
+      th, td {
+        padding: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="cabecera">
+      <h1 class="titulo-principal">👥 Gestión de Personal Médico y Administrativo</h1>
+      <a href="principal.html" class="top-bar">🏠 Inicio</a>
+    </header>
+
+    <div class="search-section">
+      <input type="text" id="search" class="search-input" placeholder="🔍 Buscar usuario...">
+      <button class="btn" onclick="buscarCoincidencias()">🔎 Buscar</button>
+      <button class="btn" onclick="openNewUser()">➕ Nuevo Usuario</button>
+      <button class="btn btn-secondary" id="btnMostrarTodos" onclick="mostrarTodos()" style="display: none;">📋 Mostrar Todos</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="users-list"></tbody>
+    </table>
+
+    <!-- Modal for New/Edit User -->
+    <div id="addForm" class="modal">
+      <div class="modal-content">
+        <h3>➕ Nuevo Usuario</h3>
+        <form id="userForm">
+          <input type="hidden" id="id_usuario" name="id_usuario">
+
+          <div class="form-group">
+            <label for="nombre_usuario">Usuario</label>
+            <input type="text" id="nombre_usuario" name="nombre_usuario" required>
+          </div>
+
+          <div class="form-group">
+            <label for="contrasena">Contraseña</label>
+            <input type="password" id="contrasena" name="contrasena" required>
+          </div>
+
+          <div class="form-group">
+            <label for="rol">Rol</label>
+            <select id="rol" name="rol" required>
+              <option value="admin">Administrativo</option>
+              <option value="medico">Médico</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="toggleAddForm()">❌ Cancelar</button>
+            <button type="submit" class="btn">💾 Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  <script src="js/configuraciones.js" defer></script>
+  <script>
+    function openNewUser() {
+      toggleAddForm();
+    }
+  </script>
+</body>
+</html>

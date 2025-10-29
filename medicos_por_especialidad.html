@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>👨‍⚕️ Médicos por Especialidad</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    :root {
+      --primary: #0077b6;
+      --secondary: #00b4d8;
+      --accent: #03045e;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      position: relative;
+    }
+
+    .header h1 {
+      color: var(--accent);
+      font-size: 1.5rem;
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .header .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header .user-menu a {
+      text-decoration: none;
+      font-size: 1.3rem;
+      color: var(--primary);
+      font-weight: bold;
+      transition: var(--transition);
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 1rem 2rem;
+    }
+
+    .header .user-menu a:hover {
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .main-content {
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: calc(100vh - 80px);
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      width: 100%;
+      max-width: 1200px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .acciones {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .search-section {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      font-size: 1rem;
+      transition: var(--transition);
+      width: 300px;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      font-weight: 600;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #6c757d, #495057);
+    }
+
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #495057, #343a40);
+      transform: translateY(-1px);
+    }
+
+    .btn-add {
+      background: linear-gradient(135deg, #4caf50, #388e3c);
+    }
+
+    .btn-add:hover {
+      background: linear-gradient(135deg, #388e3c, #2e7d32);
+    }
+
+    .btn-edit {
+      background: linear-gradient(135deg, #ffa500, #ff8c00);
+    }
+
+    .btn-edit:hover {
+      background: linear-gradient(135deg, #ff8c00, #e68900);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #f44336, #d32f2f);
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #d32f2f, #b71c1c);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #e9ecef;
+      text-align: left;
+    }
+
+    th {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    tr:hover {
+      background-color: #e3f2fd;
+      transform: scale(1.01);
+      transition: var(--transition);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .actions .btn {
+      margin: 2px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 600px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      overflow-y: auto;
+      max-height: 90vh;
+      animation: slideIn 0.4s ease-out;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-content h2 {
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+      font-size: 1.6rem;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .modal-content .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+
+    .modal-content .form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: var(--dark);
+    }
+
+    .modal-content .form-group input {
+      padding: 0.6rem;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+
+    .modal-content .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: flex-end;
+    }
+
+    .btn-group .btn {
+      flex: 1;
+      max-width: 150px;
+    }
+
+    .btn-cancel {
+      background: linear-gradient(135deg, #6c757d, #495057);
+    }
+
+    .btn-cancel:hover {
+      background: linear-gradient(135deg, #495057, #343a40);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .header h1 {
+        font-size: 1.2rem;
+      }
+
+      .main-content {
+        padding: 1rem;
+      }
+
+      .container {
+        padding: 1.5rem;
+      }
+
+      .acciones {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-section {
+        justify-content: center;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+
+      .modal-content {
+        padding: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>👨‍⚕️ Médicos por Especialidad</h1>
+    <div class="user-menu">
+      <a href="especialidades.html">⬅️ Volver</a>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <h1>👨‍⚕️ Médicos <span id="nombreEspecialidad"></span></h1>
+
+      <div class="acciones">
+        <div class="search-section">
+          <input type="text" id="buscar" class="search-input" placeholder="🔍 Buscar por nombre o apellido">
+        </div>
+        <button class="btn btn-add" onclick="openModal()">➕ Agregar Médico</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>CMP</th>
+            <th>Teléfono</th>
+            <th>Correo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaMedicos"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal for Add/Edit Doctor -->
+  <div id="doctorModal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Agregar Médico</h2>
+      <form id="formulario">
+        <input type="hidden" id="id_medico" name="id_medico">
+
+        <div class="form-group">
+          <label for="nombres">Nombres</label>
+          <input type="text" id="nombres" name="nombres" required>
+        </div>
+
+        <div class="form-group">
+          <label for="apellidos">Apellidos</label>
+          <input type="text" id="apellidos" name="apellidos" required>
+        </div>
+
+        <div class="form-group">
+          <label for="cmp">CMP</label>
+          <input type="text" id="cmp" name="cmp" required>
+        </div>
+
+        <div class="form-group">
+          <label for="telefono">Teléfono</label>
+          <input type="text" id="telefono" name="telefono" required>
+        </div>
+
+        <div class="form-group">
+          <label for="correo">Correo</label>
+          <input type="email" id="correo" name="correo" required>
+        </div>
+
+        <div class="form-group">
+          <label for="direccion">Dirección</label>
+          <input type="text" id="direccion" name="direccion" required>
+        </div>
+
+        <div class="btn-group">
+          <button type="button" class="btn btn-cancel" onclick="closeModal()">❌ Cancelar</button>
+          <button type="submit" class="btn">💾 Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id_especialidad = params.get("id_especialidad");
+
+    if (!id_especialidad) {
+      alert("No se proporcionó una especialidad.");
+      window.location.href = "especialidades.html";
+    }
+
+    const buscar = document.getElementById("buscar");
+    const tabla = document.getElementById("tablaMedicos");
+    const modal = document.getElementById("doctorModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const formulario = document.getElementById("formulario");
+    const campos = ["id_medico", "nombres", "apellidos", "cmp", "telefono", "correo", "direccion"];
+
+    function openModal() {
+      modalTitle.textContent = "Agregar Médico";
+      formulario.reset();
+      document.getElementById("id_medico").value = "";
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+      formulario.reset();
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        closeModal();
+      }
+    }
+
+    async function cargarMedicos(busqueda = "") {
+      const res = await fetch(`php/obtener_medicos_por_especialidad.php?id_especialidad=${id_especialidad}&busqueda=${encodeURIComponent(busqueda)}`);
+      const medicos = await res.json();
+
+      tabla.innerHTML = medicos.length === 0 ?
+        "<tr><td colspan='5'>No hay médicos para esta especialidad</td></tr>" :
+        medicos.map(m => `
+          <tr>
+            <td>${m.nombres} ${m.apellidos}</td>
+            <td>${m.cmp}</td>
+            <td>${m.telefono}</td>
+            <td>${m.correo}</td>
+            <td class="actions">
+              <button class="btn btn-edit" onclick='editarMedico(${JSON.stringify(m)})'>✏️</button>
+              <button class="btn btn-danger" onclick='eliminarMedico(${m.id_medico})'>🗑️</button>
+            </td>
+          </tr>`).join("");
+    }
+
+    async function eliminarMedico(id) {
+      if (!confirm("¿Eliminar este médico?")) return;
+      const res = await fetch("php/eliminar_medico.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_medico: id })
+      });
+      const result = await res.json();
+      if (result.success) cargarMedicos(buscar.value);
+      else alert("Error: " + result.error);
+    }
+
+    function editarMedico(medico) {
+      modalTitle.textContent = "Editar Médico";
+      modal.style.display = "flex";
+      campos.forEach(id => document.getElementById(id).value = medico[id] || "");
+    }
+
+    formulario.addEventListener("submit", async e => {
+      e.preventDefault();
+      const formData = new FormData(formulario);
+      formData.append("id_especialidad", id_especialidad);
+
+      const res = await fetch("php/guardar_medico.php", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        alert(result.message);
+        cargarMedicos(buscar.value);
+        closeModal();
+      } else {
+        alert("Error: " + result.error);
+      }
+    });
+
+    buscar.addEventListener("input", () => cargarMedicos(buscar.value));
+    const nombre_especialidad = params.get("nombre_especialidad") || `#${id_especialidad}`;
+    document.getElementById("nombreEspecialidad").textContent = `de ${decodeURIComponent(nombre_especialidad)}`;
+
+    cargarMedicos();
+  </script>
+</body>
+</html>

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Historia Clínica Digital📋</title>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <style>
+    :root {
+      --primary: #0077b6;
+      --secondary: #00b4d8;
+      --accent: #03045e;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      min-height: 100vh;
+      padding: 2rem;
+      display: grid;
+      place-items: center;
+    }
+
+    .contenedor-principal {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 1200px;
+      min-height: 80vh;
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .cabecera {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.5rem;
+      border-bottom: 3px solid var(--secondary);
+    }
+
+    .titulo-principal {
+      color: var(--accent);
+      font-size: 2.4rem;
+      font-weight: 700;
+    }
+
+    .top-bar {
+      text-decoration: none;
+      font-size: 1.3rem;
+      color: var(--primary);
+      font-weight: bold;
+      transition: var(--transition);
+    }
+
+    .top-bar:hover {
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .search-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .search-input, .date-input {
+      padding: 0.8rem;
+      border: 2px solid var(--secondary);
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .search-input:focus, .date-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+    }
+
+    .btn {
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      display: inline-block;
+      font-weight: 600;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .tarjeta-paciente, .linea-tiempo {
+      margin-top: 1rem;
+    }
+
+    .tarjeta-paciente {
+      background: rgba(240, 250, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      animation: slideDown 0.4s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .etiqueta {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: block;
+      color: var(--dark);
+    }
+
+    .valor-celda {
+      background: white;
+      border-radius: 10px;
+      padding: 0.8rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .linea-tiempo {
+      position: relative;
+      padding: 2rem 0;
+    }
+
+    .linea-tiempo::before {
+      content: '';
+      position: absolute;
+      left: 20px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--secondary);
+    }
+
+    .evento {
+      position: relative;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      margin-left: 40px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      animation: fadeInLeft 0.5s ease-out;
+    }
+
+    @keyframes fadeInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .evento:before {
+      content: '';
+      position: absolute;
+      left: -1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 12px;
+      height: 12px;
+      background: var(--secondary);
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 0 0 3px var(--primary);
+    }
+
+    .acciones-evento {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .acciones-evento .btn {
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    .pagination-nav {
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 600px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      overflow-y: auto;
+      max-height: 90vh;
+      animation: slideIn 0.4s ease-out;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-content h3 {
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+      font-size: 1.6rem;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .modal-content .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+
+    .modal-content .form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: var(--dark);
+    }
+
+    .modal-content .form-group textarea,
+    .modal-content .form-group select {
+      padding: 0.6rem;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      resize: vertical;
+      min-height: 80px;
+      transition: var(--transition);
+      background: white;
+      font-family: inherit;
+    }
+
+    .modal-content .form-group select {
+      min-height: auto;
+      cursor: pointer;
+    }
+
+    .modal-content .form-group textarea:focus,
+    .modal-content .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+    }
+
+    .modal-content .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: flex-end;
+    }
+
+    .btn-group .btn {
+      flex: 1;
+      max-width: 150px;
+    }
+
+    .btn-cancel {
+      background: linear-gradient(135deg, #6c757d, #495057);
+    }
+
+    .btn-cancel:hover {
+      background: linear-gradient(135deg, #495057, #343a40);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .contenedor-principal {
+        padding: 1.5rem;
+        min-height: 70vh;
+      }
+
+      .cabecera {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .titulo-principal {
+        font-size: 1.8rem;
+      }
+
+      .search-section {
+        justify-content: center;
+      }
+
+      .tarjeta-paciente {
+        grid-template-columns: 1fr;
+        padding: 1.5rem;
+      }
+
+      .evento {
+        margin-left: 20px;
+      }
+
+      .acciones-evento {
+        flex-direction: column;
+      }
+
+      .modal-content {
+        padding: 2rem;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor-principal">
+    <header class="cabecera">
+      <a href="principal.html" class="top-bar">🏠 Inicio</a>
+      <h1 class="titulo-principal">🏥 Historia Clínica Digital</h1>
+      <div>Fecha: <span id="fecha-actualizacion"></span></div>
+    </header>
+
+    <div class="search-section">
+      <input type="text" id="buscarPaciente" class="search-input" placeholder="Buscar por nombre o apellido...">
+      <button class="btn" onclick="buscarPaciente()">🔍 Buscar</button>
+      <label>Desde: <input type="date" id="filtroDesde" class="date-input"></label>
+      <label>Hasta: <input type="date" id="filtroHasta" class="date-input"></label>
+      <button class="btn" onclick="aplicarFiltroFechas()">📅 Filtrar</button>
+      <button class="btn" id="btnCrearHistoria" onclick="mostrarModalCreacion()" style="display:none;">➕ Crear Nueva Historia</button>
+    </div>
+
+    <div id="tarjetaPaciente" class="tarjeta-paciente" style="display:none;"></div>
+    <div id="lineaTiempo" class="linea-tiempo"></div>
+  </div>
+
+  <!-- Modal for Edit -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>✏️ Editar Historia Clínica</h3>
+      <div class="form-group">
+        <label for="editMotivo">Motivo</label>
+        <textarea id="editMotivo" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="editDiagnostico">Diagnóstico</label>
+        <textarea id="editDiagnostico"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="editTratamiento">Tratamiento</label>
+        <textarea id="editTratamiento"></textarea>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="editAtendida">
+        <label for="editAtendida">Marcar como atendida</label>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-cancel" onclick="closeModal()">❌ Cancelar</button>
+        <button class="btn" onclick="guardarEdicion()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Create -->
+  <div id="createModal" class="modal">
+    <div class="modal-content">
+      <h3>➕ Crear Nueva Historia Clínica</h3>
+      <div class="form-group">
+        <label for="createFecha">Fecha de Registro</label>
+        <input type="date" id="createFecha" required>
+      </div>
+      <div class="form-group">
+        <label for="createMedico">Médico</label>
+        <select id="createMedico" required>
+          <option value="">Selecciona un médico</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="createMotivo">Motivo de Consulta</label>
+        <textarea id="createMotivo" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="createDiagnostico">Diagnóstico</label>
+        <textarea id="createDiagnostico"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="createTratamiento">Tratamiento</label>
+        <textarea id="createTratamiento"></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-cancel" onclick="closeCreateModal()">❌ Cancelar</button>
+        <button class="btn" onclick="guardarCreacion()">💾 Guardar Nueva</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    let historias = [], paginaActual = 1, porPagina = 3, pacienteSeleccionado = null, historiaEditando = null, pacienteActual = null;
+    document.getElementById("fecha-actualizacion").textContent = new Date().toLocaleDateString();
+
+    $(function(){
+      $("#buscarPaciente").autocomplete({
+        source(request, response) {
+          $.getJSON("php/buscar_paciente_autocompletar_historiaC.php", { q: request.term }, data => {
+            response(data.map(p => ({
+              label: `${p.nombres} ${p.apellidos}`,
+              value: `${p.nombres} ${p.apellidos}`,
+              id: p.id_paciente
+            })));
+          });
+        },
+        select(evt, ui){
+          pacienteSeleccionado = ui.item.id;
+        }
+      });
+    });
+
+    function buscarPaciente() {
+      if (pacienteSeleccionado) {
+        cargarHistoria(pacienteSeleccionado);
+        document.getElementById("buscarPaciente").value = "";
+        document.getElementById("filtroDesde").value = "";
+        document.getElementById("filtroHasta").value = "";
+        document.getElementById("btnCrearHistoria").style.display = "inline-block";
+      } else {
+        alert("Por favor, selecciona un paciente de la lista desplegable.");
+      }
+    }
+
+    async function cargarHistoria(id_paciente){
+      let url = `php/buscar_paciente_historiaclinica.php?id_paciente=${id_paciente}`;
+      const desde = document.getElementById("filtroDesde").value;
+      const hasta = document.getElementById("filtroHasta").value;
+      if(desde && hasta) url += `&desde=${desde}&hasta=${hasta}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if(!data.success) return alert("No se encontraron historias.");
+      mostrarDatosPaciente(data.paciente);
+      pacienteActual = data.paciente;
+      historias = data.historias || [];
+      paginaActual = 1;
+      mostrarPaginadas();
+    }
+
+    function mostrarDatosPaciente(p){
+      const t = document.getElementById("tarjetaPaciente");
+      t.style.display="grid";
+      t.innerHTML = `
+        <div><span class="etiqueta">👤 Nombres:</span><div class="valor-celda">${p.nombres} ${p.apellidos}</div></div>
+        <div><span class="etiqueta">📧 Correo:</span><div class="valor-celda">${p.correo||"-"}</div></div>
+        <div><span class="etiqueta">📞 Teléfono:</span><div class="valor-celda">${p.telefono||"-"}</div></div>
+        <div><span class="etiqueta">📅 Nac.:</span><div class="valor-celda">${p.fecha_nacimiento}</div></div>
+        <div><span class="etiqueta">🏠 Dir.:</span><div class="valor-celda">${p.direccion||"-"}</div></div>
+      `;
+    }
+
+    function mostrarPaginadas(){
+      const inicio=(paginaActual-1)*porPagina;
+      const arr=historias.slice(inicio, inicio+porPagina);
+      const cont=document.getElementById("lineaTiempo");
+      cont.innerHTML="";
+      if(arr.length===0){
+        cont.innerHTML="<p>No hay historias para este rango.</p>";return;
+      }
+      arr.forEach(h=>{
+        const div=document.createElement("div");
+        div.className="evento";
+        let btns=`<button class="btn" onclick='generarPDF(${JSON.stringify(h)})'>📄 PDF</button>`;
+        if(h.estado!=="atendida"){
+          btns+=` <button class="btn" onclick='mostrarFormularioEdicion(${JSON.stringify(h)})'>✏️ Editar Historia Clínica</button>`;
+        }
+        div.innerHTML=`
+          <p><strong>📅 Fecha:</strong> ${h.fecha_cita || h.fecha_registro}</p>
+          <p><strong>🩺 Médico:</strong> ${h.nombre_medico}</p>
+          <p><strong>📝 Motivo:</strong> ${h.motivo_consulta}</p>
+          <p><strong>📋 Diagnóstico:</strong> ${h.diagnostico||"-"}</p>
+          <p><strong>💊 Tratamiento:</strong> ${h.tratamiento||"-"}</p>
+          <p><strong>🔄 Estado:</strong> ${h.estado}</p>
+          <div class="acciones-evento">${btns}</div>
+        `;
+        cont.appendChild(div);
+      });
+      const total=Math.ceil(historias.length/porPagina);
+      const nav=document.createElement("div");
+      nav.className="pagination-nav";
+      nav.innerHTML=`
+        <button class="btn" ${paginaActual<=1?"disabled":""} onclick="cambiarPagina(-1)">⬅ Anterior</button>
+        Página ${paginaActual} de ${total}
+        <button class="btn" ${paginaActual>=total?"disabled":""} onclick="cambiarPagina(1)">Siguiente ➡</button>
+      `;
+      cont.appendChild(nav);
+    }
+
+    function cambiarPagina(d){ paginaActual+=d; mostrarPaginadas(); }
+
+    function generarPDF(h){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const logo = new Image();
+      logo.src = 'img/logo.png';
+
+      logo.onload = function () {
+        doc.addImage(logo, 'PNG', 15, 10, 30, 30);
+
+        // Encabezado centrado
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.text("Historia Clínica Digital", 105, 20, null, null, "center");
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        doc.text("Sistema de Gestión Clínica", 105, 30, null, null, "center");
+        doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 105, 38, null, null, "center");
+
+        // Patient Info
+        doc.setFontSize(14);
+        doc.text("Información del Paciente", 10, 50);
+        doc.setFontSize(10);
+        doc.text(`Nombre: ${pacienteActual ? `${pacienteActual.nombres} ${pacienteActual.apellidos}` : "N/A"}`, 10, 60);
+        doc.text(`Médico: ${h.nombre_medico}`, 10, 70);
+        doc.text(`Fecha de Consulta: ${h.fecha_cita || h.fecha_registro}`, 10, 80);
+
+        // Details
+        doc.setFontSize(14);
+        doc.text("Detalles de la Consulta", 10, 95);
+        doc.setFontSize(10);
+        let y = 105;
+        doc.text(`Motivo: ${h.motivo_consulta}`, 10, y);
+        y += 10;
+        doc.text(`Diagnóstico: ${h.diagnostico || "-"}`, 10, y, {maxWidth: 180});
+        y += 20;
+        doc.text(`Tratamiento: ${h.tratamiento || "-"}`, 10, y, {maxWidth: 180});
+        y += 20;
+        doc.text(`Estado: ${h.estado}`, 10, y);
+
+        // Footer
+        doc.setFontSize(8);
+        doc.text("Sistema de Gestión Clínica - Generado automáticamente", 10, 280);
+
+        doc.save(`historia_${h.id_historia}.pdf`);
+      };
+    }
+
+    function aplicarFiltroFechas(){
+      if(pacienteSeleccionado) cargarHistoria(pacienteSeleccionado);
+      else alert("Selecciona un paciente primero");
+    }
+
+    function mostrarFormularioEdicion(h){
+      historiaEditando = h;
+      document.getElementById("editMotivo").value = h.motivo_consulta;
+      document.getElementById("editDiagnostico").value = h.diagnostico || "";
+      document.getElementById("editTratamiento").value = h.tratamiento || "";
+      document.getElementById("editAtendida").checked = h.estado === "atendida";
+      if (h.estado === "atendida") document.getElementById("editAtendida").disabled = true;
+      else document.getElementById("editAtendida").disabled = false;
+      document.getElementById("editModal").style.display = "flex";
+    }
+
+    function closeModal(){
+      document.getElementById("editModal").style.display = "none";
+      historiaEditando = null;
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById("editModal");
+      if (event.target == modal) {
+        closeModal();
+      }
+    }
+
+    async function guardarEdicion(){
+      if (!historiaEditando) return;
+      const motivo = document.getElementById("editMotivo").value.trim();
+      if (!motivo) return alert("El motivo es obligatorio.");
+      const diagnostico = document.getElementById("editDiagnostico").value.trim();
+      const tratamiento = document.getElementById("editTratamiento").value.trim();
+      const marcarAtend = document.getElementById("editAtendida")?.checked;
+
+      let r = await fetch("php/editar_historia.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_historia: historiaEditando.id_historia,
+          motivo,
+          diagnostico,
+          tratamiento
+        })
+      });
+      let j = await r.json();
+      if (!j.success) return alert("❌ Error: " + j.error);
+
+      if (marcarAtend && historiaEditando.id_cita) {
+        r = await fetch("php/marcar_cita_atendida.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `id_cita=${historiaEditando.id_cita}`
+        });
+        j = await r.json();
+        if (!j.success) return alert("⚠️ Historia ok, pero no marcó cita: " + j.error);
+      }
+
+      closeModal();
+      alert("✅ Historia actualizada" + (marcarAtend && historiaEditando.id_cita ? " y cita atendida" : ""));
+      cargarHistoria(pacienteSeleccionado);
+    }
+
+    async function mostrarModalCreacion(){
+      document.getElementById("createFecha").value = new Date().toISOString().split('T')[0];
+      document.getElementById("createMotivo").value = "";
+      document.getElementById("createDiagnostico").value = "";
+      document.getElementById("createTratamiento").value = "";
+
+      // Cargar médicos
+      const selectMedico = document.getElementById("createMedico");
+      selectMedico.innerHTML = '<option value="">Cargando médicos...</option>';
+      try {
+        const res = await fetch("php/obtener_medicos.php");
+        const medicos = await res.json();
+        selectMedico.innerHTML = '<option value="">Selecciona un médico</option>';
+        medicos.forEach(m => {
+          const option = document.createElement("option");
+          option.value = m.id_medico;
+          option.textContent = m.nombre_completo;
+          selectMedico.appendChild(option);
+        });
+      } catch (error) {
+        console.error("Error cargando médicos:", error);
+        selectMedico.innerHTML = '<option value="">Error al cargar médicos</option>';
+      }
+
+      document.getElementById("createModal").style.display = "flex";
+    }
+
+    function closeCreateModal(){
+      document.getElementById("createModal").style.display = "none";
+    }
+
+    async function guardarCreacion(){
+      const fecha = document.getElementById("createFecha").value;
+      const medico = document.getElementById("createMedico").value;
+      const motivo = document.getElementById("createMotivo").value.trim();
+      if (!fecha || !medico || !motivo) return alert("Fecha, médico y motivo son obligatorios.");
+      const diagnostico = document.getElementById("createDiagnostico").value.trim();
+      const tratamiento = document.getElementById("createTratamiento").value.trim();
+
+      const formData = new FormData();
+      formData.append('id_paciente', pacienteSeleccionado);
+      formData.append('fecha_registro', fecha);
+      formData.append('motivo_consulta', motivo);
+      formData.append('diagnostico', diagnostico);
+      formData.append('tratamiento', tratamiento);
+      formData.append('id_medico', medico);
+
+      const r = await fetch("php/guardar_historia.php", {
+        method: "POST",
+        body: formData
+      });
+      const result = await r.json();
+      if (result.success) {
+        closeCreateModal();
+        alert("✅ Historia creada exitosamente.");
+        cargarHistoria(pacienteSeleccionado);
+      } else {
+        alert("❌ Error al guardar la historia: " + result.error);
+      }
+    }
+  </script>
+</body>
+</html>

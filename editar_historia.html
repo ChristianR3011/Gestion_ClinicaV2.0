@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Historia Clínica</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #e0f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .formulario {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 100%;
+    }
+    h2 {
+      text-align: center;
+      color: #0077b6;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1.5rem;
+      padding: 0.8rem 2rem;
+      background-color: #0077b6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #005b96;
+    }
+  </style>
+</head>
+<body>
+  <form class="formulario" id="formEditar">
+    <h2>Editar Historia Clínica</h2>
+
+    <input type="hidden" id="id_historia" name="id_historia">
+
+    <label for="motivo_consulta">Motivo de Consulta:</label>
+    <textarea id="motivo_consulta" name="motivo_consulta" rows="3" required></textarea>
+
+    <label for="diagnostico">Diagnóstico:</label>
+    <textarea id="diagnostico" name="diagnostico" rows="3"></textarea>
+
+    <label for="tratamiento">Tratamiento:</label>
+    <textarea id="tratamiento" name="tratamiento" rows="3"></textarea>
+
+    <button type="submit">💾 Guardar Cambios</button>
+  </form>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+
+    fetch(`php/obtener_historia_por_id.php?id=${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById("id_historia").value = data.historia.id_historia;
+          document.getElementById("motivo_consulta").value = data.historia.motivo_consulta;
+          document.getElementById("diagnostico").value = data.historia.diagnostico;
+          document.getElementById("tratamiento").value = data.historia.tratamiento;
+        } else {
+          alert("No se pudo cargar la historia.");
+          location.href = "Historia_Clinica.html";
+        }
+      });
+
+    document.getElementById("formEditar").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const res = await fetch("php/actualizar_historia.php", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert("✅ Historia actualizada con éxito");
+        location.href = "Historia_Clinica.html";
+      } else {
+        alert("❌ Error al actualizar: " + data.error);
+      }
+    });
+  </script>
+</body>
+</html>
+

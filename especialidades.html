@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>🏥 Especialidades</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+    body { background: linear-gradient(135deg, #0077b6, #00b4d8); min-height: 100vh; padding: 2rem; }
+    .container { background: rgba(255,255,255,0.95); border-radius:15px; box-shadow:0 0 20px rgba(0,0,0,0.2); padding:2rem; margin:0 auto; max-width:1000px; display:flex; gap:2rem; min-height:400px; }
+    .specialties-section { flex:1; display:flex; flex-direction:column; }
+    h1 { color:#0077b6; margin-bottom:2rem; display:flex; align-items:center; gap:1rem; }
+    .specialties-list { display:flex; flex-direction:column; gap:1rem; flex-grow:1; margin-top:1rem; }
+    .specialty-btn { background:#caf0f8; color:#03045e; padding:1rem 2rem; border:none; border-radius:8px; cursor:pointer; transition:all 0.3s ease; text-align:left; font-size:1.1rem; width:100%; text-decoration: none; display: flex; justify-content:space-between; align-items: center; }
+    .specialty-btn:hover { background:#1a1ef049; transform:translateX(5px); }
+    .doctor-section { flex:1; display:flex; align-items:center; justify-content:center; border-left:3px solid #00b4d8; padding-left:2rem; }
+    .doctor-img { width:100%; max-width:350px; height:auto; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1); }
+    .add-btn { background:#caf0f8; color:#03045e; padding:0.8rem 1.5rem; border:2px solid #0077b6; border-radius:8px; cursor:pointer; transition:all 0.3s ease; margin-top:1rem; align-self:flex-start; }
+    .add-btn:hover { background:#ade8f4; }
+    #nombre { padding:0.5rem; border:1px solid #0077b6; border-radius:6px; width:100%; margin-bottom:1rem; }
+    .acciones-btns button {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    @media (max-width:768px) {
+      .container { flex-direction:column; }
+      .doctor-section { border-left:none; border-top:3px solid #00b4d8; padding-left:0; padding-top:2rem; }
+      .specialty-btn { font-size:1rem; padding:1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="specialties-section">
+      
+      <div style="text-align: right; margin-bottom: 1rem;">
+        <a href="principal.html" style="text-decoration:none; font-size:1.5rem;">🏠 Inicio</a>
+      </div>
+      <h1>🏥 Especialidades Médicas</h1>
+
+      <input type="text" id="nombre" placeholder="Ej. Dermatología" />
+      <button class="add-btn" id="btn-agregar">+ Agregar Especialidad</button>
+
+      <div id="lista-especialidades" class="specialties-list"></div>
+    </div>
+    <div class="doctor-section">
+      <img src="img/doctora1.png" alt="Doctor ESSALUD" class="doctor-img" />
+    </div>
+  </div>
+
+  <script>
+    async function cargarEspecialidades() {
+      try {
+        const response = await fetch("php/obtener_especialidades.php");
+        const especialidades = await response.json();
+        const lista = document.getElementById("lista-especialidades");
+        lista.innerHTML = "";
+
+        especialidades.forEach(e => {
+          const contenedor = document.createElement("div");
+          contenedor.className = "specialty-btn";
+
+          const enlace = document.createElement("a");
+          enlace.textContent = e.nombre;
+          enlace.href = `medicos_por_especialidad.html?id_especialidad=${e.id_especialidad}&nombre_especialidad=${encodeURIComponent(e.nombre)}`;
+          enlace.style.flexGrow = "1";
+          enlace.style.textDecoration = "none";
+          enlace.style.color = "#03045e";
+
+          const acciones = document.createElement("span");
+          acciones.className = "acciones-btns";
+          acciones.innerHTML = `
+            <button onclick="editarEspecialidad(${e.id_especialidad}, '${e.nombre}')">✏️</button>
+            <button onclick="eliminarEspecialidad(${e.id_especialidad})">🗑️</button>
+          `;
+
+          contenedor.appendChild(enlace);
+          contenedor.appendChild(acciones);
+          lista.appendChild(contenedor);
+        });
+      } catch (err) {
+        console.error("Error al cargar especialidades:", err);
+      }
+    }
+
+    document.getElementById("btn-agregar").addEventListener("click", async () => {
+      const nombre = document.getElementById("nombre").value.trim();
+      if (!nombre) return alert("Escribe un nombre");
+
+      const res = await fetch("php/agregar_especialidad.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre })
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById("nombre").value = "";
+        cargarEspecialidades();
+      } else {
+        alert("Error: " + data.error);
+      }
+    });
+
+    async function editarEspecialidad(id, nombreActual) {
+      const nuevo = prompt("Editar nombre de especialidad:", nombreActual);
+      if (!nuevo || nuevo === nombreActual) return;
+      const res = await fetch("php/editar_especialidad.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_especialidad: id, nombre: nuevo })
+      });
+      const data = await res.json();
+      if (data.success) cargarEspecialidades();
+      else alert("Error: " + data.error);
+    }
+
+    async function eliminarEspecialidad(id) {
+      if (!confirm("¿Eliminar esta especialidad?")) return;
+      const res = await fetch("php/eliminar_especialidad.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_especialidad: id })
+      });
+      const data = await res.json();
+      if (data.success) cargarEspecialidades();
+      else alert("Error: " + data.error);
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarEspecialidades);
+  </script>
+</body>
+</html>
+
+
+

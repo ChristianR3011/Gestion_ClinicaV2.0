@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🏥 Panel Principal - Gestión Clínica</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <style>
+    :root {
+      --primary: #0077b6;
+      --secondary: #00b4d8;
+      --accent: #03045e;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header .logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .header .logo img {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      color: var(--accent);
+      font-size: 1.5rem;
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .header .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header .user-menu button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .header .user-menu button:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .main-content {
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: calc(100vh - 80px);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.6s ease-out forwards;
+      opacity: 0;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card:nth-child(4) { animation-delay: 0.4s; }
+    .card:nth-child(5) { animation-delay: 0.5s; }
+    .card:nth-child(6) { animation-delay: 0.6s; }
+    .card:nth-child(7) { animation-delay: 0.7s; }
+    .card:nth-child(8) { animation-delay: 0.8s; }
+    .card:nth-child(9) { animation-delay: 0.9s; }
+    .card:nth-child(10) { animation-delay: 1.0s; }
+
+    /* Modal styles */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 1200px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      overflow-y: auto;
+      max-height: 90vh;
+      animation: slideIn 0.4s ease-out;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-content h2 {
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+      font-size: 1.8rem;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .modal-content .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+
+    .modal-content .form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: var(--dark);
+    }
+
+    .modal-content .form-group input,
+    .modal-content .form-group textarea {
+      padding: 0.6rem;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+
+    .modal-content .form-group input:focus,
+    .modal-content .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+    }
+
+    .modal-content .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: flex-end;
+    }
+
+    .btn-group .btn {
+      flex: 1;
+      max-width: 150px;
+    }
+
+    .btn-cancel {
+      background: linear-gradient(135deg, #6c757d, #495057);
+    }
+
+    .btn-cancel:hover {
+      background: linear-gradient(135deg, #495057, #343a40);
+      transform: translateY(-1px);
+    }
+
+    #citasTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    #citasTable th,
+    #citasTable td {
+      padding: 12px;
+      border: 1px solid #e9ecef;
+      text-align: left;
+    }
+
+    #citasTable th {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      font-weight: 600;
+    }
+
+    #citasTable tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    #citasTable tr:hover {
+      background-color: #e3f2fd;
+      transform: scale(1.01);
+      transition: var(--transition);
+    }
+
+    .paciente-info {
+      background: rgba(240, 250, 255, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      animation: slideDown 0.4s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .paciente-info h3 {
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    .paciente-info p {
+      margin: 0;
+      color: var(--dark);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .card-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover .card-icon {
+      transform: scale(1.1);
+    }
+
+    .card h3 {
+      color: var(--accent);
+      font-size: 1.3rem;
+      margin: 0 0 0.5rem 0;
+      font-weight: 600;
+    }
+
+    .card p {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin: 0 0 1.5rem 0;
+      line-height: 1.4;
+    }
+
+    .card a {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card a::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .card a:hover::before {
+      left: 100%;
+    }
+
+    .card a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .header h1 {
+        font-size: 1.2rem;
+      }
+
+      .main-content {
+        padding: 1rem;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .card {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="main-content">
+    <div class="dashboard-grid">
+      <div class="card">
+        <div class="card-icon">🏥</div>
+        <h3>Módulo Especialidades</h3>
+        <p>Gestiona las especialidades médicas disponibles en la clínica.</p>
+        <a href="especialidades.html">Acceder</a>
+      </div>
+      <div class="card">
+        <div class="card-icon">👥</div>
+        <h3>Módulo Pacientes</h3>
+        <p>Administra la información de los pacientes registrados.</p>
+        <a href="pacientes.html">Acceder</a>
+      </div>
+      <div class="card">
+        <div class="card-icon">📅</div>
+        <h3>Módulo Citas</h3>
+        <p>Programa y gestiona las citas médicas.</p>
+        <a href="citas.html">Acceder</a>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <h3>Historias Clínicas</h3>
+        <p>Accede y administra las historias clínicas de los pacientes.</p>
+        <a href="Historia_Clinica.html">Acceder</a>
+      </div>
+      <div class="card">
+        <div class="card-icon">🩺</div>
+        <h3>Disponibilidad Médica</h3>
+        <p>Revisa la disponibilidad de horarios de los médicos.</p>
+        <a href="disponibilidad_medica.html">Acceder</a>
+      </div>
+      <div class="card">
+        <div class="card-icon">📝</div>
+        <h3>Registrar Diagnóstico</h3>
+        <p>Registra nuevos diagnósticos para los pacientes.</p>
+        <a href="registrar_diagnostico.html">Acceder</a>
+      </div>
+      <div class="card">
+        <div class="card-icon">📅</div>
+        <h3>Citas Agendadas</h3>
+        <p>Ver citas programadas y registrar diagnósticos.</p>
+        <a href="citas_agendadas.html">Acceder</a>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>Reportes</h3>
+        <p>Genera y visualiza reportes detallados del sistema.</p>
+        <a href="reportes_detallados.html">Acceder</a>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚙️</div>
+        <h3>Configuraciones</h3>
+        <p>Configura los parámetros del sistema.</p>
+        <a href="configuraciones.html">Acceder</a>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚪</div>
+        <h3>Cerrar Sesión</h3>
+        <p>Finaliza tu sesión en el sistema.</p>
+        <a href="#" id="btnLogout">Cerrar Sesión</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal for Citas and Diagnóstico -->
+  <div id="citasModal" class="modal">
+    <div class="modal-content">
+      <h2>📅 Citas Agendadas y Registro de Diagnósticos</h2>
+      <div id="citasContainer">
+        <table id="citasTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Paciente</th>
+              <th>Médico</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Motivo</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="citasBody"></tbody>
+        </table>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-cancel" onclick="cerrarModuloCitas()">❌ Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Diagnóstico -->
+  <div id="diagnosticoModal" class="modal">
+    <div class="modal-content">
+      <h2>👨‍⚕️ Registrar Diagnóstico y Tratamiento</h2>
+      <div id="pacienteInfo" class="paciente-info" style="display: none;">
+        <h3>Información del Paciente</h3>
+        <p id="infoPaciente"></p>
+      </div>
+      <form id="diagnosticoForm">
+        <input type="hidden" id="id_paciente" name="id_paciente">
+        <input type="hidden" id="id_cita" name="id_cita">
+        <input type="hidden" id="id_medico" name="id_medico">
+        <div class="form-group">
+          <label for="fecha_registro">Fecha de Registro</label>
+          <input type="date" id="fecha_registro" name="fecha_registro" required>
+        </div>
+        <div class="form-group">
+          <label for="motivo_consulta">Motivo de Consulta</label>
+          <textarea id="motivo_consulta" name="motivo_consulta" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="diagnostico">Diagnóstico</label>
+          <textarea id="diagnostico" name="diagnostico" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="tratamiento">Tratamiento</label>
+          <textarea id="tratamiento" name="tratamiento" rows="3" required></textarea>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn btn-cancel" onclick="cerrarDiagnosticoModal()">❌ Cancelar</button>
+          <button type="submit" class="btn">💾 Guardar Historia Clínica</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let citasData = [];
+
+    function mostrarModuloCitas() {
+      document.getElementById('citasModal').style.display = 'flex';
+      cargarCitas();
+    }
+
+    function cerrarModuloCitas() {
+      document.getElementById('citasModal').style.display = 'none';
+    }
+
+    function cerrarDiagnosticoModal() {
+      document.getElementById('diagnosticoModal').style.display = 'none';
+    }
+
+    async function cargarCitas() {
+      try {
+        const response = await fetch('php/listar_citas.php');
+        const citas = await response.json();
+        citasData = citas;
+        mostrarCitas(citas);
+      } catch (error) {
+        console.error('Error cargando citas:', error);
+        alert('Error al cargar las citas.');
+      }
+    }
+
+    function mostrarCitas(citas) {
+      const tbody = document.getElementById('citasBody');
+      tbody.innerHTML = '';
+
+      citas.forEach(cita => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${cita.id_cita}</td>
+          <td>${cita.nombres} ${cita.apellidos}</td>
+          <td>${cita.nom_doc} ${cita.ape_doc}</td>
+          <td>${cita.fecha_cita}</td>
+          <td>${cita.hora_cita}</td>
+          <td>${cita.motivo || '-'}</td>
+          <td>${cita.estado}</td>
+          <td>
+            <button class="btn" onclick="registrarDiagnostico(${cita.id_cita})">📝 Registrar Diagnóstico</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function registrarDiagnostico(idCita) {
+      const cita = citasData.find(c => c.id_cita == idCita);
+      if (!cita) {
+        alert('Cita no encontrada.');
+        return;
+      }
+
+      // Mostrar información del paciente
+      document.getElementById('infoPaciente').innerHTML = `
+        <strong>ID Paciente:</strong> ${cita.id_paciente}<br>
+        <strong>Nombre:</strong> ${cita.nombres} ${cita.apellidos}<br>
+        <strong>Médico:</strong> ${cita.nom_doc} ${cita.ape_doc}<br>
+        <strong>Fecha Cita:</strong> ${cita.fecha_cita}<br>
+        <strong>Motivo:</strong> ${cita.motivo || '-'}
+      `;
+      document.getElementById('pacienteInfo').style.display = 'block';
+
+      // Llenar el formulario
+      document.getElementById('id_paciente').value = cita.id_paciente;
+      document.getElementById('id_cita').value = cita.id_cita;
+      document.getElementById('fecha_registro').value = new Date().toISOString().split('T')[0];
+      document.getElementById('motivo_consulta').value = cita.motivo || '';
+      document.getElementById('diagnostico').value = '';
+      document.getElementById('tratamiento').value = '';
+
+      // Cerrar modal de citas y abrir modal de diagnóstico
+      cerrarModuloCitas();
+      document.getElementById('diagnosticoModal').style.display = 'flex';
+    }
+
+    document.getElementById('diagnosticoForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const usuario = JSON.parse(localStorage.getItem('usuario'));
+      if (usuario) {
+        // Check if user is a doctor by verifying they exist in medicos table
+        try {
+          const checkResponse = await fetch('php/verificar_medico.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_usuario: usuario.id_usuario })
+          });
+          const checkResult = await checkResponse.json();
+
+          if (!checkResult.is_medico) {
+            alert('❌ Solo los médicos pueden registrar diagnósticos.');
+            return;
+          }
+
+          formData.append('id_medico', usuario.id_usuario);
+        } catch (error) {
+          console.error('Error verificando médico:', error);
+          alert('⚠️ Error de verificación.');
+          return;
+        }
+      }
+
+      try {
+        const response = await fetch('php/guardar_historia.php', {
+          method: 'POST',
+          body: formData
+        });
+        const result = await response.json();
+        if (result.success) {
+          alert('✅ Historia clínica guardada exitosamente.');
+          this.reset();
+          document.getElementById('pacienteInfo').style.display = 'none';
+          cerrarDiagnosticoModal();
+        } else {
+          alert('❌ Error al guardar la historia: ' + result.error);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('⚠️ Error de conexión.');
+      }
+    });
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+      const citasModal = document.getElementById('citasModal');
+      const diagnosticoModal = document.getElementById('diagnosticoModal');
+      if (event.target == citasModal) {
+        cerrarModuloCitas();
+      }
+      if (event.target == diagnosticoModal) {
+        cerrarDiagnosticoModal();
+      }
+    }
+
+    document.getElementById('btnLogout').addEventListener('click', function(e) {
+      e.preventDefault();
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

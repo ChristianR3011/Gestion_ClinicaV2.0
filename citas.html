@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administrar Citas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="css/estilos.css">
+  <style>
+    :root {
+      --primary: #0077b6;
+      --secondary: #00b4d8;
+      --accent: #03045e;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .main-content {
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: calc(100vh - 80px);
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      width: 100%;
+      max-width: 1200px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .top-bar h1 {
+      margin: 0;
+      flex: 1;
+      color: var(--accent);
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .top-bar a {
+      position: absolute;
+      top: 0;
+      right: 0;
+      text-decoration: none;
+      font-size: 1.3rem;
+      color: var(--primary);
+      font-weight: bold;
+      transition: var(--transition);
+    }
+
+    .top-bar a:hover {
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .search-section {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #e9ecef;
+      text-align: left;
+    }
+
+    th {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    tr:hover {
+      background-color: #e3f2fd;
+      transform: scale(1.01);
+      transition: var(--transition);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .actions .btn {
+      margin: 2px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 600px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      overflow-y: auto;
+      max-height: 90vh;
+      animation: slideIn 0.4s ease-out;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-content h2 {
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+      font-size: 1.6rem;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .modal-content .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+
+    .modal-content .form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: var(--dark);
+    }
+
+    .modal-content .form-group input,
+    .modal-content .form-group select {
+      padding: 0.6rem;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+
+    .modal-content .form-group input:focus,
+    .modal-content .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: flex-end;
+    }
+
+    .btn-group .btn {
+      flex: 1;
+      max-width: 150px;
+    }
+
+    .btn-cancel {
+      background: linear-gradient(135deg, #6c757d, #495057);
+    }
+
+    .btn-cancel:hover {
+      background: linear-gradient(135deg, #495057, #343a40);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 1rem;
+      }
+
+      .container {
+        padding: 1.5rem;
+      }
+
+      .top-bar h1 {
+        font-size: 1.5rem;
+      }
+
+      .search-section {
+        flex-direction: column;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+
+      .modal-content {
+        padding: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="main-content">
+    <div class="container">
+      <div class="top-bar">
+        <h1>👨‍⚕️ Gestión de Citas</h1>
+        <a href="principal.html">🏠 Inicio</a>
+      </div>
+
+      <div class="search-section">
+        <input type="text" id="search" class="search-input" placeholder="🔍 Buscar cita...">
+        <button class="btn" onclick="buscarCitas()">🔎 Buscar</button>
+        <button class="btn" onclick="openNewCitaModal()">➕ Nueva Cita</button>
+        <button class="btn" id="btnMostrarTodos" onclick="mostrarTodas()" style="display: none;">📋 Mostrar Todas</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Paciente</th>
+            <th>Médico</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Motivo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="citas-list"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal for New Cita -->
+  <div id="newCitaModal" class="modal">
+    <div class="modal-content">
+      <h2>Agregar Nueva Cita</h2>
+      <form id="citaForm">
+        <input type="hidden" id="id_cita" name="id_cita">
+
+        <div class="form-group">
+          <label for="especialidad">Especialidad 🧪</label>
+          <select id="especialidad" required>
+            <option value="">Seleccione una especialidad</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="medico">Médico 🩺</label>
+          <select id="medico" name="medico" disabled required>
+            <option value="">Seleccione un médico</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="paciente">Paciente 👤</label>
+          <select id="paciente" name="paciente" required>
+            <option value="">Seleccione un paciente</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="motivo">Motivo de la cita 📝</label>
+          <input type="text" id="motivo" name="motivo" placeholder="Ej. Dolor de cabeza" required>
+        </div>
+
+        <div class="form-group">
+          <label for="fecha">Fecha 📅</label>
+          <input type="date" id="fecha" name="fecha" disabled required>
+        </div>
+
+        <div class="form-group">
+          <label for="hora">Hora ⏰</label>
+          <select id="hora" name="hora" disabled required>
+            <option value="">Seleccione una hora</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado 📋</label>
+          <select id="estado" name="estado" required>
+            <option value="pendiente">Pendiente</option>
+            <option value="atendida">Atendida</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+
+        <div class="btn-group">
+          <button type="button" class="btn btn-cancel" onclick="closeNewCitaModal()">❌ Cancelar</button>
+          <button type="submit" class="btn">💾 Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  <script>
+    const apiBase = 'php';
+    let citas = [];
+
+    function openNewCitaModal() {
+      const form = document.getElementById('citaForm');
+      form.reset();
+      document.getElementById('id_cita').value = '';
+      document.getElementById('newCitaModal').style.display = 'flex';
+    }
+
+    function closeNewCitaModal() {
+      document.getElementById('newCitaModal').style.display = 'none';
+      document.getElementById('citaForm').reset();
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('newCitaModal');
+      if (event.target == modal) {
+        closeNewCitaModal();
+      }
+    }
+
+    async function cargarCitas() {
+      try {
+        const res = await fetch(`${apiBase}/listar_citas.php`);
+        const data = await res.json();
+        citas = data;
+        renderizarCitas(data);
+      } catch (err) {
+        console.error('Error al cargar citas:', err);
+      }
+    }
+
+    function renderizarCitas(lista) {
+      const tbody = document.getElementById('citas-list');
+      tbody.innerHTML = '';
+
+      lista.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${c.id_cita}</td>
+          <td>${c.nombres} ${c.apellidos}</td>
+          <td>${c.nom_doc} ${c.ape_doc}</td>
+          <td>${c.fecha_cita}</td>
+          <td>${c.hora_cita}</td>
+          <td>${c.motivo}</td>
+          <td>${c.estado}</td>
+          <td class="actions">
+            <button class="btn" onclick="editarCita(${c.id_cita})">✏️</button>
+            <button class="btn" onclick="deleteCita(${c.id_cita})">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function buscarCitas() {
+      const input = document.getElementById('search');
+      const term = input.value.trim().toLowerCase();
+      const btnMostrarTodos = document.getElementById('btnMostrarTodos');
+
+      if (term === '') {
+        alert('Por favor, ingresa un criterio de búsqueda.');
+        return;
+      }
+
+      const resultados = citas.filter(c =>
+        (`${c.nombres} ${c.apellidos}`.toLowerCase().includes(term)) ||
+        (`${c.nom_doc} ${c.ape_doc}`.toLowerCase().includes(term)) ||
+        (c.motivo && c.motivo.toLowerCase().includes(term)) ||
+        (c.fecha_cita && c.fecha_cita.includes(term))
+      );
+
+      renderizarCitas(resultados);
+
+      btnMostrarTodos.style.display = resultados.length > 0 ? 'inline-block' : 'none';
+
+      if (resultados.length === 0) {
+        alert('❌ No se encontraron coincidencias.');
+      }
+    }
+
+    function mostrarTodas() {
+      renderizarCitas(citas);
+      document.getElementById('search').value = '';
+      document.getElementById('btnMostrarTodos').style.display = 'none';
+    }
+
+    function editarCita(id) {
+      const c = citas.find(c => c.id_cita == id);
+      if (!c) return alert('Cita no encontrada');
+      openNewCitaModal();
+      $('#id_cita').val(c.id_cita);
+
+      // Populate form fields
+      $('#paciente').val(c.id_paciente);
+      $('#motivo').val(c.motivo || '');
+      $('#fecha').val(c.fecha_cita);
+      $('#hora').val(c.hora_cita);
+      $('#estado').val(c.estado);
+
+      // Load specialty based on doctor
+      $.getJSON('php/obtener_medicos_full.php', function(medicos) {
+        const medico = medicos.find(m => m.id_medico == c.id_medico);
+        if (medico && medico.id_especialidad) {
+          $('#especialidad').val(medico.id_especialidad);
+          cargarMedicos(medico.id_especialidad);
+          $('#medico').val(c.id_medico);
+        }
+      });
+
+      // Enable fields for editing
+      $('#medico').prop('disabled', false);
+      $('#fecha').prop('disabled', false);
+      $('#hora').prop('disabled', false);
+    }
+
+    async function deleteCita(id) {
+      if (!confirm('¿Estás seguro de cancelar esta cita?')) return;
+      try {
+        const res = await fetch(`${apiBase}/cancelar_cita.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `id_cita=${id}`
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✅ Cita cancelada exitosamente.');
+          cargarCitas();
+        } else {
+          alert(`❌ Error: ${data.error}`);
+        }
+      } catch (err) {
+        console.error('Error al cancelar cita:', err);
+        alert('❌ Error al cancelar la cita.');
+      }
+    }
+
+    $(function() {
+      let fechasDisponibles = [];
+
+      // Cargar especialidades
+      $.getJSON('php/obtener_especialidades_citas_administrador.php', function(data) {
+        if (Array.isArray(data)) {
+          data.forEach(e => {
+            $('#especialidad').append(`<option value="${e.id_especialidad}">${e.nombre}</option>`);
+          });
+        }
+      });
+
+      // Cargar pacientes al cargar la página
+      cargarPacientes();
+
+      function cargarMedicos(idEspecialidad) {
+        $('#medico').prop('disabled', true).empty().append('<option>Cargando…</option>');
+        $('#fecha').prop('disabled', true).val('');
+        $('#hora').prop('disabled', true).empty().append('<option>Seleccione una hora</option>');
+
+        $.getJSON('php/buscar_medico_citas_admi.php', {
+          tipo: 'medico',
+          especialidad: idEspecialidad
+        }, function(data) {
+          $('#medico').empty().append('<option value="">Seleccione un médico</option>');
+          data.forEach(item => {
+            $('#medico').append(`<option value="${item.id}">${item.nombre}</option>`);
+          });
+          $('#medico').prop('disabled', false);
+        });
+      }
+
+
+
+      // Cargar pacientes en el select
+      function cargarPacientes() {
+        $('#paciente').prop('disabled', true).empty().append('<option>Cargando…</option>');
+        $.getJSON('php/buscar_paciente_autocompletar_historiaC.php', function(data) {
+          $('#paciente').empty().append('<option value="">Seleccione un paciente</option>');
+          data.forEach(item => {
+            $('#paciente').append(`<option value="${item.id_paciente}">${item.nombres} ${item.apellidos} (DNI: ${item.dni})</option>`);
+          });
+          $('#paciente').prop('disabled', false);
+        }).fail(function() {
+          $('#paciente').empty().append('<option value="">Error al cargar pacientes</option>');
+        });
+      }
+
+      // Cargar médicos disponibles al seleccionar especialidad
+      $("#especialidad").on('change', function() {
+        const idEspecialidad = $(this).val();
+        if (idEspecialidad) {
+          cargarMedicos(idEspecialidad);
+        } else {
+          $('#medico').prop('disabled', true).empty().append('<option value="">Seleccione un médico</option>');
+          $('#fecha').prop('disabled', true).val('');
+          $('#hora').prop('disabled', true).empty().append('<option value="">Seleccione una hora</option>');
+        }
+      });
+
+      // Cargar médicos al cambiar médico
+      $('#medico').on('change', function() {
+        const idMed = $(this).val();
+        if (idMed) {
+          cargarFechasDisponibles(idMed);
+        } else {
+          $('#fecha').prop('disabled', true).val('');
+          $('#hora').prop('disabled', true).empty().append('<option>Seleccione una hora</option>');
+        }
+      });
+
+      function cargarFechasDisponibles(idMedico) {
+        $.getJSON('php/obtener_fechas_disponibles.php', { id_medico: idMedico }, data => {
+          if (data.length) {
+            $('#fecha').prop('disabled', false)
+                        .attr('min', data[0])
+                        .attr('max', data.at(-1));
+          } else {
+            alert('⚠️ No hay fechas disponibles');
+            $('#fecha').prop('disabled', true).val('');
+          }
+          $('#hora').prop('disabled', true).empty().append('<option>Seleccione una hora</option>');
+        });
+      }
+
+      $('#fecha').on('change', function() {
+        const idMed = $('#medico').val(), fec = $(this).val();
+        if (!idMed || !fec) return;
+        $('#hora').prop('disabled', false).empty().append('<option>Cargando…</option>');
+        $.getJSON('php/obtener_horas_admin.php', { id_medico: idMed, fecha: fec }, res => {
+          $('#hora').empty().append('<option value="">Seleccione una hora</option>');
+          if (res.success && res.horas.length) {
+            res.horas.forEach(h => $('#hora').append(`<option value="${h}">${h}</option>`));
+          } else {
+            $('#hora').append('<option disabled>Sin disponibilidad</option>');
+            $('#hora').prop('disabled', true);
+          }
+        });
+      });
+
+      $('#citaForm').submit(function(e) {
+        e.preventDefault();
+
+        // Validación del lado cliente
+        const pacienteId = $('#paciente').val();
+        const medicoId = $('#medico').val();
+        const fecha = $('#fecha').val();
+        const hora = $('#hora').val();
+        const motivo = $('#motivo').val().trim();
+
+        if (!pacienteId) {
+          alert('❌ Por favor, selecciona un paciente.');
+          return;
+        }
+        if (!medicoId) {
+          alert('❌ Por favor, selecciona un médico válido.');
+          return;
+        }
+        if (!fecha) {
+          alert('❌ Por favor, selecciona una fecha.');
+          return;
+        }
+        if (!hora) {
+          alert('❌ Por favor, selecciona una hora.');
+          return;
+        }
+        if (!motivo) {
+          alert('❌ Por favor, ingresa el motivo de la consulta.');
+          return;
+        }
+
+        const payload = {
+          paciente_id: pacienteId,
+          medico_id: medicoId,
+          fecha: fecha,
+          hora: hora,
+          motivo: motivo,
+          estado: $('#estado').val()
+        };
+
+        if ($('#id_cita').val()) {
+          payload.id_cita = $('#id_cita').val();
+        }
+
+        // Mostrar spinner de carga
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.text();
+        submitBtn.prop('disabled', true).text('⏳ Guardando...');
+
+        const url = $('#id_cita').val() ? 'actualizar_cita.php' : 'registrar_cita_admi.php';
+        $.post(`${apiBase}/${url}`, payload, function(res) {
+          if (res && res.success) {
+            alert("✅ Cita guardada correctamente.");
+            $('#citaForm')[0].reset();
+            closeNewCitaModal();
+            cargarCitas();
+          } else {
+            alert(res.error || "❌ Error al guardar la cita.");
+          }
+        }, 'json').fail(function() {
+          alert("❌ Error al guardar la cita.");
+        }).always(function() {
+          submitBtn.prop('disabled', false).text(originalText);
+        });
+      });
+    });
+
+    // Load citas on page load
+    cargarCitas();
+
+    // Window functions
+    window.buscarCitas = buscarCitas;
+    window.mostrarTodas = mostrarTodas;
+    window.openNewCitaModal = openNewCitaModal;
+    window.closeNewCitaModal = closeNewCitaModal;
+    window.editarCita = editarCita;
+    window.deleteCita = deleteCita;
+  </script>
+</body>
+</html>

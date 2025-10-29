@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>🔐 Iniciar Sesión</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+  <div class="container">
+    <img src="img/logo.png" alt="Logo Clínica" class="logo">
+    <h1>🔐 Iniciar Sesión</h1>
+
+    <form id="loginForm">
+      <input type="text" id="usuario" placeholder="Usuario" required>
+      <div class="error" id="err-user">Campo obligatorio</div>
+
+      <input type="password" id="contrasena" placeholder="Contraseña" required>
+      <div class="error" id="err-pass">Campo obligatorio</div>
+
+      <select id="rol">
+        <option value="paciente">Paciente</option>
+        <option value="admin">Administrador</option>
+        <option value="medico">Médico</option>
+      </select>
+
+      <button type="submit">Ingresar</button>
+    </form>
+
+    <span class="link" onclick="abrirRegistro()">📝 Regístrate como paciente</span>
+  </div>
+
+ 
+  <div class="modal" id="modalRegistro">
+    <div class="modal-content">
+      <h2>👥 Registro de Paciente</h2>
+      <form id="registroForm">
+        <input type="text" name="dni"              placeholder="DNI"               required>
+        <input type="text" name="nombres"          placeholder="Nombres"           required>
+        <input type="text" name="apellidos"        placeholder="Apellidos"         required>
+        <input type="date" name="fecha_nacimiento" placeholder="Fecha de Nacimiento" required>
+        <select name="sexo" required>
+          <option value="" disabled selected>Sexo</option>
+          <option value="M">M</option>
+          <option value="F">F</option>
+        </select>
+        <input type="text" name="direccion"        placeholder="Dirección (opcional)">
+        <input type="text" name="telefono"         placeholder="Teléfono"          required>
+        <input type="email" name="correo"          placeholder="Correo"            required>
+        <input type="password" name="contrasena"   placeholder="Contraseña"        required>
+
+        <div class="btn-group">
+          <button type="submit">Registrar</button>
+          <button type="button" class="btn-cancel" onclick="cerrarRegistro()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Mostrar/Ocultar modal
+    function abrirRegistro(){
+      document.getElementById('modalRegistro').style.display = 'flex';
+    }
+    function cerrarRegistro(){
+      document.getElementById('modalRegistro').style.display = 'none';
+    }
+
+    
+    document.getElementById('registroForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target;
+      const fd = new FormData(form);
+
+      
+      const fn = new Date(fd.get('fecha_nacimiento'));
+      if (new Date().getFullYear() - fn.getFullYear() < 18) {
+        return alert('⛔ Debes tener 18 años o más para registrarte.');
+      }
+
+      try {
+        const res = await fetch('php/registrar_paciente.php', {
+          method: 'POST',
+          body: fd
+        });
+        const json = await res.json();
+        if (json.success) {
+          alert('✅ Registro exitoso. Ya puedes iniciar sesión.');
+          form.reset();
+          cerrarRegistro();
+        } else {
+          alert('❌ ' + json.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('⚠️ Error de comunicación con el servidor.');
+      }
+    });
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const u = document.getElementById('usuario').value.trim();
+      const p = document.getElementById('contrasena').value.trim();
+      const r = document.getElementById('rol').value;
+      let valid = true;
+      document.getElementById('err-user').style.display = u ? 'none' : 'block'   && (valid=false);
+      document.getElementById('err-pass').style.display = p ? 'none' : 'block' && (valid=false);
+      if (!valid) return;
+
+      try {
+        const res = await fetch('php/login.php', {
+  method: 'POST',
+  credentials: 'include',         
+  headers: { 'Content-Type':'application/json' },
+  body: JSON.stringify({ usuario: u, contrasena: p, rol: r })
+});
+        const data = await res.json();
+        if (data.success) {
+          // Se guardara el usuario en localStorage
+          localStorage.setItem('usuario', JSON.stringify({
+            id_usuario: data.id_usuario,
+            nombre: data.nombre,
+            rol: data.rol
+          }));
+          // Se redirige según el rol
+          if (data.rol === 'admin') window.location.href = 'principal.html';
+          else if (data.rol === 'medico') window.location.href = 'principal_medico.html';
+          else window.location.href = 'cita_paciente.html';
+        } else {
+          alert('❌ ' + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('⚠️ Error de comunicación con el servidor.');
+      }
+    });
+  </script>
+</body>
+</html>
